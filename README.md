@@ -15,11 +15,15 @@ The container is built on top of ubuntu:22.04 image.
 
 ## Building the Container
 
-### Using command line
+### Option 1: Using command line
 ```bash
 apptainer build {YOUR_PREFERRED_CONTAINER_NAME}.sif warptools.def
 # Example 
-# apptainer build warptools_1.0.0.sif warptools.def
+# apptainer build warptools.sif warptools.def
+```
+### Option 2: Using setup.sh
+```bash
+./setup.sh
 ```
 
 ## Testing the Container
@@ -27,12 +31,20 @@ To test the container successfully created on the above step/s run the following
 ```bash
 apptainer test {YOUR_PREFERRED_CONTAINER_NAME}.sif
 # Example
-# apptainer test warptools_1.0.0.sif
-
+# apptainer test warptools.sif
 ```
 
-## To Do
+## Usage:
+To use the container in interative shell mode use the following commands.
+``` bash
+# Without cuda (on host machine)
+apptainer shell {YOUR_PREFERRED_CONTAINER_NAME}.sif
 
-Create a setup.sh file to build the container image 
+# With cuda (on host machine)
 
+apptainer shell -nv {YOUR_PREFERRED_CONTAINER_NAME}.sif
+
+# inside the interactive terminal run
+
+source /opt/conda/bin/activate warp
 
