@@ -18,8 +18,19 @@ The container is built on top of ubuntu:22.04 image.
 ### Using command line
 ```bash
 apptainer build {YOUR_PREFERRED_CONTAINER_NAME}.sif warptools.def
-# example apptainer build warptools_1.0.0.sif warptools.def
+# Example 
+# apptainer build warptools_1.0.0.sif warptools.def
 ```
+
+## Testing the Container
+To test the container successfully created on the above step/s run the following command:
+```bash
+apptainer test {YOUR_PREFERRED_CONTAINER_NAME}.sif
+# Example
+# apptainer test warptools_1.0.0.sif
+
+```
+
 ## To Do
 
 Create a setup.sh file to build the container image 
