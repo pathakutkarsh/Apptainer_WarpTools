@@ -1,0 +1,96 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%help
+    This container includes WarpTools for cryo-EM data processing.
+    WarpTools is installed via conda following official documentation.
+    
+    Usage:
+        apptainer shell --nv warptools.sif
+        apptainer exec --nv warptools.sif warp_tools [command]
+    
+    The --nv flag enables GPU support (required for optimal performance).
+    
+    Official documentation: https://warpem.github.io/warp/
+    Installation guide: https://warpem.github.io/warp/user_guide/warptools/installation/
+
+%labels
+    Author Utkarsh Pathak
+    Version v1.0
+    Description WarpTools v1.0.0 container for cryo-EM data analysis
+    WarpTools_Version 1.0.0
+    Installation_Method conda
+    Official_Docs https://warpem.github.io/warp/
+
+%environment
+    # Set environment variables
+    export LC_ALL=C
+    export PATH=/opt/conda/envs/warp/bin:/opt/conda/bin:$PATH
+    export CONDA_DEFAULT_ENV=warp
+    export CONDA_PREFIX=/opt/conda/envs/warp
+    export CONDA_SHLVL=1
+    
+    # Add conda library paths
+    export LD_LIBRARY_PATH=/opt/conda/envs/warp/lib:$LD_LIBRARY_PATH
+    
+%post
+    # Update and install basic dependencies
+    apt-get update && apt-get install -y \
+        wget \
+        curl \
+        ca-certificates \
+        bzip2 \
+        libgomp1 \
+        git \
+        && rm -rf /var/lib/apt/lists/*
+    
+    # Install Miniforge3 (conda-forge distribution with mamba)
+    # Note: Mambaforge was deprecated in 2024 and retired in January 2025
+    # Miniforge3 now includes both conda and mamba
+    cd /tmp
+    wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+    bash Miniforge3-Linux-x86_64.sh -b -p /opt/conda
+    rm Miniforge3-Linux-x86_64.sh
+    
+    # Initialize conda
+    /opt/conda/bin/conda init bash
+    
+    # Create warp environment and install WarpTools
+    # Following exact command from official documentation:
+    # https://warpem.github.io/warp/user_guide/warptools/installation/
+    /opt/conda/bin/conda create -y -n warp warp=2.0.0 \
+        -c warpem \
+        -c nvidia/label/cuda-11.8.0 \
+        -c pytorch \
+        -c conda-forge
+    
+    # Clean up conda cache to reduce image size
+    /opt/conda/bin/conda clean -afy
+    
+    # Clean up apt cache
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    # Activate warp environment and run command
+    # Note: User should specify the actual warp_tools command
+    exec bash -c "source /opt/conda/bin/activate warp && exec \"\$@\"" -- "$@"
+
+%test
+    # Test that conda is installed
+    echo "Testing conda installation..."
+    /opt/conda/bin/conda --version
+    
+    # Test that warp environment exists
+    echo "Testing warp environment..."
+    /opt/conda/bin/conda env list | grep warp
+    
+    # Test that warp is installed
+    echo "Testing warp installation..."
+    /opt/conda/bin/conda list -n warp warp
+    
+    # Check CUDA availability
+    echo "Checking CUDA libraries..."
+    /opt/conda/envs/warp/bin/python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}')" || echo "Note: CUDA check requires --nv flag at runtime"
+    
+    echo "Container build test completed successfully!"
